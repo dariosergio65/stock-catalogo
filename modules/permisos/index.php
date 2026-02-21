@@ -2,6 +2,7 @@
 require_once "../../config/auth.php";
 require_once "../../config/db.php";
 require_once "../../config/permisos.php";
+require_once "../../config/auditoria.php";
 
 verificarPermiso('permisos');
 
@@ -57,6 +58,12 @@ if ($_POST) {
             $stmt->execute([$usuario_id,$m]);
         }
     }
+
+    registrarAuditoria(
+    'modificar',
+    'permisos',
+    "Modificó permisos del usuario ID $usuario_id"
+    );
 
     header("Location: index.php?usuario_id=".$usuario_id."&ok=1");
     exit;

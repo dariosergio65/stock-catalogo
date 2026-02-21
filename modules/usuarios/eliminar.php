@@ -1,10 +1,24 @@
 <?php
 require_once "../../config/auth.php";
 require_once "../../config/db.php";
-soloAdmin();
+require_once "../../config/permisos.php";
+require_once "../../config/auditoria.php";
+
+verificarPermiso('usuarios');
+
+//soloAdmin();
+
+$id = $_GET['id'];
 
 $pdo->prepare("DELETE FROM usuarios WHERE id=?")
     ->execute([$_GET['id']]);
+
+registrarAuditoria(
+    'eliminar',
+    'usuarios',
+    "Eliminó usuario ID: $id"
+);
+
 
 header("Location: index.php");
 ?>

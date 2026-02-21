@@ -1,24 +1,38 @@
 <?php
+require_once "../../config/auth.php";
 require_once "../../config/db.php";
+require_once "../../config/permisos.php";
+require_once "../../config/auditoria.php";
+
+verificarPermiso('productos');
+
+$codigo         = $_POST['codigo'];
+$descripcion    = $_POST['descripcion'];
+$stock_minimo   = $_POST['stock_minimo'];
+$precio_compra  = $_POST['precio_compra'];
+$precio_venta   = $_POST['precio_venta'];
+$categoria_id   = $_POST['categoria_id'] ?? null;
 
 $pdo->prepare("
-INSERT INTO productos 
-(codigo,descripcion,categoria_id,stock_minimo,precio_compra,precio_venta)
-VALUES (?,?,?,?,?,?)
+    INSERT INTO productos 
+    (codigo, descripcion, stock_minimo, precio_compra, precio_venta, categoria_id)
+    VALUES (?,?,?,?,?,?)
 ")->execute([
-$_POST['codigo'],
-$_POST['descripcion'],
-$_POST['categoria_id'],
-$_POST['stock_minimo'],
-$_POST['precio_compra'],
-$_POST['precio_venta']
+    $codigo,
+    $descripcion,
+    $stock_minimo,
+    $precio_compra,
+    $precio_venta,
+    $categoria_id
 ]);
 
+// ✅ REGISTRO DE AUDITORÍA
+registrarAuditoria(
+    'productos',
+    'crear',
+    "Alta de producto: $descripcion (Código: $codigo)"
+);
+
 header("Location: index.php");
+exit;
 ?>
-<head>
-<meta charset="utf-8">
-<title>Productos</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="../../assets/css/styles.css">
-</head>

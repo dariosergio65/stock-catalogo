@@ -1,7 +1,11 @@
 <?php
 require_once "../../config/auth.php";
 require_once "../../config/db.php";
-soloAdmin();
+require_once "../../config/permisos.php";
+require_once "../../config/auditoria.php";
+
+verificarPermiso('productos');
+//soloAdmin();
 
 $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
@@ -14,6 +18,12 @@ $_POST['usuario'],
 $hash,
 $_POST['rol']
 ]);
+
+registrarAuditoria(
+    'crear',
+    'usuarios',
+    "Creó usuario: {$_POST['usuario']}"
+);
 
 header("Location: index.php");
 ?>

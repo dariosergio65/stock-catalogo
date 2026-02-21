@@ -166,6 +166,15 @@ $alertas = $stmt->fetchAll();
       </div>
     <?php endif; ?>
 
+    <?php if ($_SESSION['rol'] === 'admin'): ?>
+      <div class="col-md-3 col-sm-6">
+        <a href="../modules/auditoria/index.php" class="btn btn-outline-dark w-100 p-3">
+        📜 Auditoría
+        </a>
+      </div>
+    <?php endif; ?>
+
+
 
   </div>
 

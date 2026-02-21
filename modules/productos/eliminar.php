@@ -1,8 +1,20 @@
 <?php
 require_once "../../config/auth.php";
 require_once "../../config/db.php";
+require_once "../../config/permisos.php";
+require_once "../../config/auditoria.php";
+
+verificarPermiso('productos');
 
 $id = $_GET['id'];
+
+
+registrarAuditoria(
+    'eliminar',
+    'productos',
+    "Eliminó producto ID: $id"
+);
+
 
 $stmt = $pdo->prepare("UPDATE productos SET activo=0 WHERE id=?");
 $stmt->execute([$id]);

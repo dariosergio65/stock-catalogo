@@ -1,6 +1,11 @@
 <?php
 session_start();
+require_once "../../config/auth.php";
 require_once "../../config/db.php";
+require_once "../../config/permisos.php";
+require_once "../../config/auditoria.php";
+
+verificarPermiso('movimientos');
 
 $producto_id = $_POST['producto_id'];
 $tipo         = $_POST['tipo'];
@@ -90,6 +95,12 @@ try {
     ]);
 
     $pdo->commit();
+
+    registrarAuditoria(
+    'movimiento',
+    'movimientos',
+    "Movimiento: {$tipo} - Producto ID {$producto_id} - Cantidad {$cantidad}"
+    );
 
     header("Location: index.php");
     exit;
