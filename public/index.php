@@ -34,45 +34,32 @@ $alertas = $stmt->fetchAll();
 <nav class="navbar navbar-dark bg-dark">
   <div class="container-fluid">
     <span class="navbar-brand">Sistema de Stock</span>
-    <div class="d-flex align-items-center gap-2">
-      <span class="text-white small">
+
+    <div class="dropdown">
+      <button class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
         👤 <?= $_SESSION['nombre'] ?>
-      </span>
-      <a href="logout.php" class="btn btn-danger btn-sm">Salir</a>
+      </button>
+
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+          <a class="dropdown-item" href="../modules/usuarios/cambiar_clave.php">
+            🔐 Cambiar contraseña
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <a class="dropdown-item text-danger" href="logout.php">
+            🚪 Cerrar sesión
+          </a>
+        </li>
+      </ul>
     </div>
+
   </div>
 </nav>
 
+
 <div class="container mt-4">
-
-<?php if (count($alertas) > 0): ?>
-<div class="alert alert-danger">
-  <h5 class="mb-2">⚠ Productos con stock bajo</h5>
-
-  <div class="table-responsive">
-    <table class="table table-sm table-bordered mb-0">
-      <thead class="table-danger">
-        <tr>
-          <th>Producto</th>
-          <th>Categoría</th>
-          <th>Stock</th>
-          <th>Mínimo</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($alertas as $a): ?>
-        <tr>
-          <td><?= $a['descripcion'] ?></td>
-          <td><?= $a['categoria'] ?></td>
-          <td class="fw-bold text-danger"><?= $a['stock'] ?></td>
-          <td><?= $a['stock_minimo'] ?></td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
-</div>
-<?php endif; ?>
 
 
   <div class="row g-3">
@@ -166,7 +153,7 @@ $alertas = $stmt->fetchAll();
       </div>
     <?php endif; ?>
 
-    <?php if ($_SESSION['rol'] === 'admin'): ?>
+  <?php if ($_SESSION['rol'] === 'admin'): ?>
       <div class="col-md-3 col-sm-6">
         <a href="../modules/auditoria/index.php" class="btn btn-outline-dark w-100 p-3">
         📜 Auditoría
@@ -174,11 +161,42 @@ $alertas = $stmt->fetchAll();
       </div>
     <?php endif; ?>
 
+    <?php if (count($alertas) > 0): ?>
+    <div class="alert alert-danger">
+      <h5 class="mb-2">⚠ Productos con stock bajo</h5>
+
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered mb-0">
+        <thead class="table-danger">
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Stock</th>
+            <th>Mínimo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($alertas as $a): ?>
+          <tr>
+            <td><?= $a['descripcion'] ?></td>
+            <td><?= $a['categoria'] ?></td>
+            <td class="fw-bold text-danger"><?= $a['stock'] ?></td>
+            <td><?= $a['stock_minimo'] ?></td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<?php endif; ?>
+
 
 
   </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
