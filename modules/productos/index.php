@@ -1,15 +1,19 @@
 <?php
 require_once "../../config/auth.php";
+require_once "../../config/db.php";
 require_once "../../config/permisos.php";
+
 verificarPermiso('productos');
 
-require_once "../../config/db.php";
-
 $productos = $pdo->query("
-    SELECT p.*, c.nombre AS categoria
+    SELECT 
+        p.*,
+        c.nombre AS categoria,
+        d.nombre AS deposito
     FROM productos p
     LEFT JOIN categorias c ON p.categoria_id = c.id
-    WHERE p.activo = 1
+    INNER JOIN depositos d ON p.deposito_id = d.id
+    ORDER BY p.descripcion
 ")->fetchAll();
 ?>
 
@@ -22,47 +26,53 @@ $productos = $pdo->query("
 <link rel="stylesheet" href="../../assets/css/styles.css">
 </head>
 
-<body class="container mt-4">
+<body>
+
+<div class="container mt-4">
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Productos</h3>
-  <a href="../../public/index.php" class="btn btn-secondary">⬅ Menú</a>
+  <h4>📦 Productos</h4>
+  <a href="crear.php" class="btn btn-success">➕ Nuevo</a>
+  <a href="../../public/index.php" class="btn btn-secondary">⬅ Volver</a>
 </div>
 
-<a href="crear.php" class="btn btn-primary mb-3">➕ Nuevo producto</a>
+<table class="table table-bordered table-striped table-hover align-middle">
 
-<table class="table table-bordered table-hover table-sm">
 <thead class="table-dark">
 <tr>
+  <th>ID</th>
   <th>Código</th>
   <th>Descripción</th>
   <th>Categoría</th>
-  <th>Stock</th>
-  <th>Stock mín.</th>
-  <th>Precio</th>
-  <th>Acciones</th>
+  <th>Depósito</th>
+  <th class="text-end">Stock</th>
+  <th width="210" class="text-end">Acciones</th>
 </tr>
 </thead>
 
 <tbody>
-<?php foreach($productos as $p): ?>
-<tr class="<?= $p['stock'] <= $p['stock_minimo'] ? 'table-danger' : '' ?>">
+<?php foreach ($productos as $p): ?>
+<tr>
+  <td><?= $p['id'] ?></td>
   <td><?= htmlspecialchars($p['codigo']) ?></td>
   <td><?= htmlspecialchars($p['descripcion']) ?></td>
-  <td><?= htmlspecialchars($p['categoria'] ?? '-') ?></td>
-  <td><?= $p['stock'] ?></td>
-  <td><?= $p['stock_minimo'] ?></td>
-  <td>$<?= number_format($p['precio_venta'],2) ?></td>
-  <td>
-    <a href="editar.php?id=<?= $p['id'] ?>" class="btn btn-warning btn-sm">✏️</a>
-    <a href="eliminar.php?id=<?= $p['id'] ?>"
-       class="btn btn-danger btn-sm"
-       onclick="return confirm('¿Eliminar producto?')">🗑</a>
+  <td><?= htmlspecialchars($p['categoria'] ?? 'Sin categoría') ?></td>
+  <td><?= htmlspecialchars($p['deposito']) ?></td>
+  <td class="text-end"><?= $p['stock'] ?></td>
+  <td class="text-end">
+      <a href="editar.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-primary">✏ Editar</a>
+      <a href="eliminar.php?id=<?= $p['id'] ?>"
+         onclick="return confirm('¿Eliminar producto?')"
+         class="btn btn-sm btn-danger">🗑 Eliminar</a>
   </td>
 </tr>
 <?php endforeach; ?>
 </tbody>
+
 </table>
+
+
+</div>
 
 </body>
 </html>

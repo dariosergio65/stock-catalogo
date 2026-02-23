@@ -13,7 +13,7 @@ $usuarios = $pdo->query("
 ")->fetchAll();
 
 $modulos = [
-  'dashboard','productos','categorias','clientes','proveedores',
+  'dashboard','productos','categorias','depositos','clientes','proveedores',
   'movimientos','kardex','reportes','usuarios'
 ];
 

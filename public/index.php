@@ -80,6 +80,17 @@ $alertas = $stmt->fetchAll();
       </div>
     <?php endif; ?>
 
+    <?php if (tienePermiso('depositos')): ?>
+      <div class="col-md-3 col-sm-6">
+        <a href="../modules/depositos/index.php" class="btn btn-info w-100 p-3">
+          🏬 Depósitos
+        </a>
+      </div>
+    <?php endif; ?>
+
+
+
+
     <?php if (tienePermiso('clientes')): ?>
       <div class="col-md-3 col-sm-6">
         <a href="../modules/clientes/index.php" class="btn btn-secondary w-100 p-3">

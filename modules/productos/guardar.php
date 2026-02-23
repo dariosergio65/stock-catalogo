@@ -8,6 +8,7 @@ verificarPermiso('productos');
 
 $codigo         = $_POST['codigo'];
 $descripcion    = $_POST['descripcion'];
+$deposito       = $_POST['deposito_id'];
 $stock_minimo   = $_POST['stock_minimo'];
 $precio_compra  = $_POST['precio_compra'];
 $precio_venta   = $_POST['precio_venta'];
@@ -15,11 +16,12 @@ $categoria_id   = $_POST['categoria_id'] ?? null;
 
 $pdo->prepare("
     INSERT INTO productos 
-    (codigo, descripcion, stock_minimo, precio_compra, precio_venta, categoria_id)
-    VALUES (?,?,?,?,?,?)
+    (codigo, descripcion, deposito_id, stock_minimo, precio_compra, precio_venta, categoria_id)
+    VALUES (?,?,?,?,?,?,?)
 ")->execute([
     $codigo,
     $descripcion,
+    $deposito,
     $stock_minimo,
     $precio_compra,
     $precio_venta,

@@ -8,7 +8,7 @@ require_once __DIR__ . "/db.php";
 function permisosPorRol() {
     return [
         'admin' => [
-            'productos','categorias','clientes','proveedores',
+            'productos','categorias','depositos','clientes','proveedores',
             'movimientos','kardex','reportes','usuarios','dashboard','permisos'
         ],
         'empleado' => [
