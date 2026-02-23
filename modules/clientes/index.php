@@ -6,7 +6,7 @@ verificarPermiso('clientes');
 require_once "../../config/db.php";
 
 $title = "Clientes";
-require_once "../../layout/header.php";
+// require_once "../../layout/header.php";
 
 $clientes = $pdo->query("SELECT * FROM clientes")->fetchAll();
 ?>
