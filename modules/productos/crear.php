@@ -6,6 +6,7 @@ require_once "../../config/permisos.php";
 verificarPermiso('productos');
 
 $depositos = $pdo->query("SELECT id, nombre FROM depositos WHERE activo = 1 ORDER BY nombre")->fetchAll();
+$categoria = $pdo->query("SELECT id, nombre FROM categorias ORDER BY nombre")->fetchAll();
 ?>
 
 <!doctype html>
@@ -23,7 +24,7 @@ $depositos = $pdo->query("SELECT id, nombre FROM depositos WHERE activo = 1 ORDE
 
 <h4 class="mb-3">📦 Nuevo producto</h4>
 
-<form method="post" action="guardar.php" class="card card-body shadow-sm">
+<form method="post" action="guardar.php"enctype="multipart/form-data" class="card card-body shadow-sm">
 
   <div class="mb-2">
     <label class="form-label">Código</label>
@@ -36,12 +37,28 @@ $depositos = $pdo->query("SELECT id, nombre FROM depositos WHERE activo = 1 ORDE
   </div>
 
   <div class="mb-2">
+    <input type="file" name="imagen" class="form-control mb-2">
+  </div>
+
+  <div class="mb-2">
     <label class="form-label">Depósito</label>
     <select name="deposito_id" class="form-select" required>
       <option value="">Seleccione depósito...</option>
       <?php foreach ($depositos as $d): ?>
         <option value="<?= $d['id'] ?>">
             <?= htmlspecialchars($d['nombre']) ?>
+        </option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Categoría</label>
+    <select name="categoria_id" class="form-select" required>
+      <option value="">Seleccione categoría...</option>
+      <?php foreach ($categoria as $c): ?>
+        <option value="<?= $c['id'] ?>">
+            <?= htmlspecialchars($c['nombre']) ?>
         </option>
       <?php endforeach; ?>
     </select>

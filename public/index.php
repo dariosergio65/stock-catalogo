@@ -12,7 +12,7 @@ SELECT
     c.nombre AS categoria
 FROM productos p
 LEFT JOIN categorias c ON p.categoria_id = c.id
-WHERE p.stock <= p.stock_minimo
+WHERE p.stock <= p.stock_minimo AND p.activo=1
 ORDER BY p.stock ASC
 ";
 
@@ -68,6 +68,14 @@ $alertas = $stmt->fetchAll();
       <div class="col-md-3 col-sm-6">
         <a href="../modules/productos/index.php" class="btn btn-primary w-100 p-3">
           📦 Productos
+        </a>
+      </div>
+    <?php endif; ?>
+
+    <?php if (tienePermiso('catalogos')): ?>
+      <div class="col-md-3 col-sm-6">
+        <a href="../modules/productos/catalogo.php" class="btn btn-primary w-100 p-3">
+          🛒 Catálogos
         </a>
       </div>
     <?php endif; ?>

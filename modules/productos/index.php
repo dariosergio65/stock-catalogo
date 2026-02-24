@@ -13,6 +13,7 @@ $productos = $pdo->query("
     FROM productos p
     LEFT JOIN categorias c ON p.categoria_id = c.id
     INNER JOIN depositos d ON p.deposito_id = d.id
+    WHERE p.activo=1
     ORDER BY p.descripcion
 ")->fetchAll();
 ?>
@@ -43,6 +44,7 @@ $productos = $pdo->query("
   <th>ID</th>
   <th>Código</th>
   <th>Descripción</th>
+  <th>Imagen</th>
   <th>Categoría</th>
   <th>Depósito</th>
   <th class="text-end">Stock</th>
@@ -56,6 +58,13 @@ $productos = $pdo->query("
   <td><?= $p['id'] ?></td>
   <td><?= htmlspecialchars($p['codigo']) ?></td>
   <td><?= htmlspecialchars($p['descripcion']) ?></td>
+  <td>
+    <?php if ($p['imagen']): ?>
+        <img src="../../uploads/productos/<?= $p['imagen'] ?>" height="40">
+    <?php else: ?>
+        —
+    <?php endif; ?>
+  </td>
   <td><?= htmlspecialchars($p['categoria'] ?? 'Sin categoría') ?></td>
   <td><?= htmlspecialchars($p['deposito']) ?></td>
   <td class="text-end"><?= $p['stock'] ?></td>

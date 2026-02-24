@@ -8,14 +8,14 @@ require_once __DIR__ . "/db.php";
 function permisosPorRol() {
     return [
         'admin' => [
-            'productos','categorias','depositos','clientes','proveedores',
+            'productos','catalogos','categorias','depositos','clientes','proveedores',
             'movimientos','kardex','reportes','usuarios','dashboard','permisos'
         ],
         'empleado' => [
             'productos','clientes','movimientos','kardex','dashboard'
         ],
         'operador' => [
-            'productos','movimientos','kardex','dashboard'
+            'productos','catalogos','movimientos','kardex','dashboard'
         ],
         'consulta' => [
             'kardex','dashboard','reportes'

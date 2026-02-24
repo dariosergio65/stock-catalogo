@@ -14,13 +14,28 @@ $precio_compra  = $_POST['precio_compra'];
 $precio_venta   = $_POST['precio_venta'];
 $categoria_id   = $_POST['categoria_id'] ?? null;
 
+$imagen = null;
+
+if (!empty($_FILES['imagen']['name'])) {
+
+    $ext = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
+
+    $imagen = uniqid() . "." . $ext;
+
+    move_uploaded_file(
+        $_FILES['imagen']['tmp_name'],
+        "../../uploads/productos/" . $imagen
+    );
+}
+
 $pdo->prepare("
     INSERT INTO productos 
-    (codigo, descripcion, deposito_id, stock_minimo, precio_compra, precio_venta, categoria_id)
-    VALUES (?,?,?,?,?,?,?)
+    (codigo, descripcion, imagen, deposito_id, stock_minimo, precio_compra, precio_venta, categoria_id)
+    VALUES (?,?,?,?,?,?,?,?)
 ")->execute([
     $codigo,
     $descripcion,
+    $imagen,
     $deposito,
     $stock_minimo,
     $precio_compra,

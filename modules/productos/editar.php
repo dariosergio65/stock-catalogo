@@ -5,19 +5,14 @@ require_once "../../config/permisos.php";
 
 verificarPermiso('productos');
 
-$id = $_GET['id'] ?? 0;
+$id = $_GET['id'];
 
-$stmt = $pdo->prepare("SELECT * FROM productos WHERE id = ?");
-$stmt->execute([$id]);
-$producto = $stmt->fetch();
+$producto = $pdo->prepare("SELECT * FROM productos WHERE id=?");
+$producto->execute([$id]);
+$p = $producto->fetch();
 
-if (!$producto) {
-    echo "Producto no encontrado";
-    exit;
-}
-
-$categorias = $pdo->query("SELECT id, nombre FROM categorias ORDER BY nombre")->fetchAll();
-$depositos  = $pdo->query("SELECT id, nombre FROM depositos WHERE activo = 1 ORDER BY nombre")->fetchAll();
+$categorias = $pdo->query("SELECT * FROM categorias ORDER BY nombre")->fetchAll();
+$depositos  = $pdo->query("SELECT * FROM depositos ORDER BY nombre")->fetchAll();
 ?>
 
 <!doctype html>
@@ -26,7 +21,6 @@ $depositos  = $pdo->query("SELECT id, nombre FROM depositos WHERE activo = 1 ORD
 <meta charset="utf-8">
 <title>Editar Producto</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="../../assets/css/styles.css">
 </head>
 
 <body>
@@ -35,64 +29,60 @@ $depositos  = $pdo->query("SELECT id, nombre FROM depositos WHERE activo = 1 ORD
 
 <h4 class="mb-3">✏ Editar producto</h4>
 
-<form method="post" action="actualizar.php" class="card card-body shadow-sm">
+<form method="post" action="actualizar.php" enctype="multipart/form-data">
 
-<input type="hidden" name="id" value="<?= $producto['id'] ?>">
-
-<div class="mb-2">
-  <label class="form-label">Código</label>
-  <input name="codigo" class="form-control" required value="<?= htmlspecialchars($producto['codigo']) ?>">
-</div>
-
-<div class="mb-2">
-  <label class="form-label">Descripción</label>
-  <input name="descripcion" class="form-control" required value="<?= htmlspecialchars($producto['descripcion']) ?>">
-</div>
-
-<div class="mb-2">
-  <label class="form-label">Categoría</label>
-  <select name="categoria_id" class="form-select">
-    <option value="">Sin categoría</option>
-    <?php foreach ($categorias as $c): ?>
-      <option value="<?= $c['id'] ?>" <?= $c['id'] == $producto['categoria_id'] ? 'selected' : '' ?>>
-        <?= htmlspecialchars($c['nombre']) ?>
-      </option>
-    <?php endforeach; ?>
-  </select>
-</div>
-
-<div class="mb-2">
-  <label class="form-label">Depósito</label>
-  <select name="deposito_id" class="form-select" required>
-    <?php foreach ($depositos as $d): ?>
-      <option value="<?= $d['id'] ?>" <?= $d['id'] == $producto['deposito_id'] ? 'selected' : '' ?>>
-        <?= htmlspecialchars($d['nombre']) ?>
-      </option>
-    <?php endforeach; ?>
-  </select>
-</div>
+<input type="hidden" name="id" value="<?= $p['id'] ?>">
 
 <div class="row">
-  <div class="col-md-4 mb-2">
-    <label class="form-label">Stock mínimo</label>
-    <input type="number" name="stock_minimo" class="form-control" required value="<?= $producto['stock_minimo'] ?>">
-  </div>
 
-  <div class="col-md-4 mb-2">
-    <label class="form-label">Precio compra</label>
-    <input type="number" step="0.01" name="precio_compra" class="form-control" required value="<?= $producto['precio_compra'] ?>">
-  </div>
+<div class="col-md-8">
 
-  <div class="col-md-4 mb-2">
-    <label class="form-label">Precio venta</label>
-    <input type="number" step="0.01" name="precio_venta" class="form-control" required value="<?= $producto['precio_venta'] ?>">
-  </div>
+<input name="codigo" value="<?= $p['codigo'] ?>" class="form-control mb-2" placeholder="Código">
+
+<input name="descripcion" value="<?= $p['descripcion'] ?>" class="form-control mb-2" placeholder="Descripción">
+
+<select name="categoria_id" class="form-control mb-2">
+  <option value="">-- Categoría --</option>
+  <?php foreach ($categorias as $c): ?>
+    <option value="<?= $c['id'] ?>" <?= $p['categoria_id']==$c['id']?'selected':'' ?>>
+        <?= $c['nombre'] ?>
+    </option>
+  <?php endforeach; ?>
+</select>
+
+<select name="deposito_id" class="form-control mb-2">
+  <option value="">-- Depósito --</option>
+  <?php foreach ($depositos as $d): ?>
+    <option value="<?= $d['id'] ?>" <?= $p['deposito_id']==$d['id']?'selected':'' ?>>
+        <?= $d['nombre'] ?>
+    </option>
+  <?php endforeach; ?>
+</select>
+
+<input name="stock_minimo" type="number" value="<?= $p['stock_minimo'] ?>" class="form-control mb-2">
+
+<input name="precio_compra" value="<?= $p['precio_compra'] ?>" class="form-control mb-2">
+
+<input name="precio_venta" value="<?= $p['precio_venta'] ?>" class="form-control mb-2">
+
+<input type="file" name="imagen" class="form-control mb-2">
+
 </div>
 
-<div class="mt-3">
-  <button class="btn btn-primary">Actualizar</button>
-  <a href="index.php" class="btn btn-secondary">Volver</a>
+<div class="col-md-4 text-center">
+
+<?php if ($p['imagen']): ?>
+    <img src="../../uploads/productos/<?= $p['imagen'] ?>" class="img-fluid rounded border">
+<?php else: ?>
+    <div class="border p-4 text-muted">Sin imagen</div>
+<?php endif; ?>
+
 </div>
+
+</div>
+
+<button class="btn btn-success">Guardar cambios</button>
+<a href="index.php" class="btn btn-secondary">Cancelar</a>
 
 </form>
 
