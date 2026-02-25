@@ -43,6 +43,8 @@ $categorias = $pdo->query("SELECT * FROM categorias ORDER BY nombre")->fetchAll(
 <div class="container mt-4">
 
 <h3 class="mb-3">🛒 Catálogo de Productos</h3>
+        <a href="../../public/index.php" class="btn btn-secondary mt-4">⬅ Volver</a>
+<br><br>
 
 <div class="row mb-3">
 
@@ -98,11 +100,7 @@ $categorias = $pdo->query("SELECT * FROM categorias ORDER BY nombre")->fetchAll(
 
 <?php endforeach; ?>
 
-</div>
 
-<a href="../../public/index.php" class="btn btn-secondary mt-4">⬅ Volver</a>
-
-</div>
 
 <script>
 const filtroCategoria = document.getElementById('filtroCategoria');

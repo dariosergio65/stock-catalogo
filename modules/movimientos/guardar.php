@@ -10,7 +10,7 @@ verificarPermiso('movimientos');
 $producto_id = $_POST['producto_id'];
 $tipo         = $_POST['tipo'];
 $cantidad     = $_POST['cantidad'];
-$lote         = $_POST['lote'] ?: null;
+$lote = !empty($_POST['lote']) ? $_POST['lote'] : 'SIN-LOTE';
 $cliente_id   = $_POST['cliente_id'] ?: null;
 $proveedor_id = $_POST['proveedor_id'] ?: null;
 $usuario_id   = $_SESSION['usuario_id'];
