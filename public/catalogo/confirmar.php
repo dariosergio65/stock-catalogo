@@ -48,33 +48,33 @@ foreach ($_SESSION['carrito'] as $item) {
 
 $pdo->commit();
 
+/* ============================
+   MENSAJE AUTOMÁTICO WHATSAPP
+   ============================ */
+
+$mensaje  = "🛒 *Nuevo Pedido*\n\n";
+$mensaje .= "Pedido Nº: #$pedido_id\n\n";
+$mensaje .= "Cliente: $nombre\n";
+$mensaje .= "Tel: $telefono\n";
+$mensaje .= "Dirección: $direccion\n\n";
+$mensaje .= "Productos:\n";
+
+foreach ($_SESSION['carrito'] as $item) {
+    $mensaje .= "- {$item['descripcion']} x{$item['cantidad']} = $"
+             . number_format($item['precio'] * $item['cantidad'], 0, ',', '.')
+             . "\n";
+}
+
+$mensaje .= "\nTotal: $"
+          . number_format($total, 0, ',', '.');
+
+$telefono_whatsapp = "5491130348609";
+
+$link_whatsapp = "https://wa.me/$telefono_whatsapp?text=" . urlencode($mensaje);
+
+/* Limpio carrito */
 unset($_SESSION['carrito']);
-?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Pedido confirmado</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-light">
-
-<div class="container py-5 text-center">
-
-<h2 class="text-success">✅ Pedido confirmado</h2>
-
-<p class="mt-3">Gracias por tu compra, <b><?= htmlspecialchars($nombre) ?></b></p>
-
-<p>Número de pedido: <b>#<?= $pedido_id ?></b></p>
-
-<a href="index.php" class="btn btn-primary mt-3">
-    Volver al catálogo
-</a>
-
-</div>
-
-</body>
-</html>
+/* Redirijo automáticamente */
+header("Location: $link_whatsapp");
+exit;
