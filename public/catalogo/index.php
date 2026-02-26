@@ -55,6 +55,10 @@ body {
 
 <body>
 
+<a href="../carrito/carrito.php" class="btn btn-dark mb-3 w-100">
+   Ver carrito 🛒
+</a>
+
 <nav class="navbar navbar-dark bg-dark">
   <div class="container-fluid">
     <span class="navbar-brand">🛒 Catálogo</span>
@@ -106,6 +110,10 @@ body {
 $<?= number_format($p['precio_venta'],2,',','.') ?>
 </div>
 
+<a href="../carrito/agregar.php?id=<?= $p['id'] ?>" class="btn btn-success w-100">
+   Agregar 🛒
+</a>
+
 </div>
 
 </div>
@@ -114,6 +122,7 @@ $<?= number_format($p['precio_venta'],2,',','.') ?>
 <?php endforeach; ?>
 
 </div>
+
 
 </div>
 
