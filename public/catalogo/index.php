@@ -55,7 +55,7 @@ body {
 
 <body>
 
-<a href="../carrito/carrito.php" class="btn btn-dark mb-3 w-100">
+<a href="../catalogo/carrito/carrito.php" class="btn btn-dark mb-3 w-100">
    Ver carrito 🛒
 </a>
 
@@ -110,7 +110,7 @@ body {
 $<?= number_format($p['precio_venta'],2,',','.') ?>
 </div>
 
-<a href="../catalogo/carrito/agregar.php?id=<?= $p['id'] ?>" class="btn btn-success w-100">
+<a href="carrito/agregar.php?id=<?= $p['id'] ?>" class="btn btn-success w-100">
    Agregar 🛒
 </a>
 

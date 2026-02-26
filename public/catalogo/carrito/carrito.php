@@ -1,65 +1,122 @@
 <?php
 session_start();
+
 $carrito = $_SESSION['carrito'] ?? [];
-$total = 0;
 ?>
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<title>Carrito</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Mi Carrito</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+        .producto-card {
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.1);
+        }
+        .img-prod {
+            max-height: 90px;
+            object-fit: contain;
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<div class="container py-4">
+<div class="container py-3">
 
-<h3 class="mb-4">🛒 Mi carrito</h3>
+    <h3 class="mb-3 text-center">🛒 Mi carrito</h3>
 
-<?php if (!$carrito): ?>
-    <div class="alert alert-info">El carrito está vacío</div>
-<?php else: ?>
+    <?php if (empty($carrito)): ?>
 
-<table class="table table-bordered bg-white">
-<thead class="table-dark">
-<tr>
-  <th>Producto</th>
-  <th>Cant.</th>
-  <th>Precio</th>
-  <th>Subtotal</th>
-</tr>
-</thead>
+        <div class="alert alert-info text-center">
+            Tu carrito está vacío.
+        </div>
 
-<tbody>
-<?php foreach ($carrito as $p): 
-    $sub = $p['precio'] * $p['cantidad'];
-    $total += $sub;
-?>
-<tr>
-  <td><?= htmlspecialchars($p['descripcion']) ?></td>
-  <td><?= $p['cantidad'] ?></td>
-  <td>$<?= number_format($p['precio'],2,',','.') ?></td>
-  <td>$<?= number_format($sub,2,',','.') ?></td>
-</tr>
-<?php endforeach; ?>
-</tbody>
+        <div class="d-grid gap-2">
+            <a href="../index.php" class="btn btn-primary btn-lg">
+                ⬅ Volver al catálogo
+            </a>
+        </div>
 
-<tfoot class="table-secondary">
-<tr>
-  <th colspan="3">Total</th>
-  <th>$<?= number_format($total,2,',','.') ?></th>
-</tr>
-</tfoot>
-</table>
+    <?php else: ?>
 
-<a href="vaciar.php" class="btn btn-danger">Vaciar carrito</a>
-<a href="../catalogo/index.php" class="btn btn-secondary">Seguir comprando</a>
+        <?php $total = 0; ?>
 
-<?php endif; ?>
+        <div class="row g-3">
+
+            <?php foreach ($carrito as $id => $p): 
+                $subtotal = $p['precio'] * $p['cantidad'];
+                $total += $subtotal;
+            ?>
+
+                <div class="col-12">
+                    <div class="card producto-card p-2">
+                        <div class="row g-2 align-items-center">
+
+                            <div class="col-3 text-center">
+                                <?php if (!empty($p['imagen'])): ?>
+                                    <img src="../../../uploads/productos/<?= $p['imagen'] ?>" class="img-fluid rounded"  style="max-height:70px;">
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="col-9">
+                                <strong><?= htmlspecialchars($p['descripcion']) ?></strong><br>
+
+                                <small>
+                                    Cantidad: <?= $p['cantidad'] ?> <br>
+                                    Precio: $<?= number_format($p['precio'], 2) ?>
+                                </small>
+
+                                <div class="mt-1 d-flex justify-content-between align-items-center">
+                                    <strong>$<?= number_format($subtotal, 2) ?></strong>
+
+                                    <a href="agregar.php?eliminar=<?= $id ?>" 
+                                       class="btn btn-sm btn-danger">
+                                        ✖
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            <?php endforeach; ?>
+
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>Total:</h4>
+            <h4>$<?= number_format($total, 2) ?></h4>
+        </div>
+
+        <div class="d-grid gap-2 mt-3">
+            <a href="../index.php" class="btn btn-outline-primary btn-lg">
+                ⬅ Seguir comprando
+            </a>
+
+            <a href="../finalizar.php" class="btn btn-success w-100 mt-3">
+                ✅ Finalizar pedido
+            </a>
+
+            <a href="vaciar.php" class="btn btn-outline-danger">
+                Vaciar carrito
+            </a>
+        </div>
+
+    <?php endif; ?>
 
 </div>
+
 </body>
 </html>

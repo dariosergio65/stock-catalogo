@@ -1,6 +1,13 @@
 <?php
 session_start();
-require_once "../../config/db.php";
+require_once "../../../config/db.php";
+
+if (isset($_GET['eliminar'])) {
+    $id = $_GET['eliminar'];
+    unset($_SESSION['carrito'][$id]);
+    header("Location: carrito.php");
+    exit;
+}
 
 $id = intval($_GET['id'] ?? 0);
 
@@ -16,6 +23,7 @@ if (!$producto) {
     header("Location: index.php");
     exit;
 }
+
 
 if (!isset($_SESSION['carrito'])) {
     $_SESSION['carrito'] = [];
