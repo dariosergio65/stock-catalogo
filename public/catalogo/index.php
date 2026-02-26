@@ -110,7 +110,7 @@ body {
 $<?= number_format($p['precio_venta'],2,',','.') ?>
 </div>
 
-<a href="../carrito/agregar.php?id=<?= $p['id'] ?>" class="btn btn-success w-100">
+<a href="../catalogo/carrito/agregar.php?id=<?= $p['id'] ?>" class="btn btn-success w-100">
    Agregar 🛒
 </a>
 
