@@ -25,6 +25,42 @@ $carrito = $_SESSION['carrito'] ?? [];
             max-height: 90px;
             object-fit: contain;
         }
+
+        
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 1000;
+        }
+
+        .mobile-nav a {
+            text-decoration: none;
+            color: #333;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .mobile-nav small {
+            display: block;
+            font-size: 11px;
+        }
+
+        .btn-finalizar {
+            color: #0d6efd;
+            font-weight: bold;
+        }
+
+        body {
+            padding-bottom: 65px;
+        }
+        
     </style>
 </head>
 
@@ -117,6 +153,26 @@ $carrito = $_SESSION['carrito'] ?? [];
     <?php endif; ?>
 
 </div>
+
+<nav class="mobile-nav d-md-none">
+
+    <a href="../index.php">
+        🏠
+        <small>Catálogo</small>
+    </a>
+
+    <a href="vaciar.php"
+       onclick="return confirm('¿Vaciar carrito?')">
+        🗑️
+        <small>Vaciar</small>
+    </a>
+
+    <a href="../finalizar.php" class="btn-finalizar">
+        ✅
+        <small>Finalizar</small>
+    </a>
+
+</nav>
 
 </body>
 </html>

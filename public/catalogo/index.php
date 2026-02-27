@@ -49,6 +49,37 @@ body {
         height: 200px;
     }
 }
+
+
+.mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+    z-index: 1000;
+}
+
+.mobile-nav a {
+    text-decoration: none;
+    color: #333;
+    text-align: center;
+    font-size: 14px;
+}
+
+.mobile-nav small {
+    display: block;
+    font-size: 11px;
+}
+
+body {
+    padding-bottom: 65px;
+}
+
 </style>
 
 </head>
@@ -151,6 +182,29 @@ function filtrar() {
 filtroCat.addEventListener('change', filtrar);
 filtroTxt.addEventListener('keyup', filtrar);
 </script>
+
+<nav class="mobile-nav d-md-none">
+    <a href="index.php">
+        🏠
+        <small>Catálogo</small>
+    </a>
+
+    <a href="./carrito/carrito.php" class="position-relative">
+        🛒
+        <small>Carrito</small>
+
+        <?php if (!empty($_SESSION['carrito'])): ?>
+            <span class="badge bg-danger position-absolute top-0 start-50 translate-middle">
+                <?= count($_SESSION['carrito']) ?>
+            </span>
+        <?php endif; ?>
+    </a>
+
+    <a href="#busqueda">
+        🔎
+        <small>Buscar</small>
+    </a>
+</nav>
 
 </body>
 </html>

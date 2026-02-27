@@ -27,6 +27,9 @@ $stmt->execute([$nombre, $telefono, $email, $direccion, $total]);
 
 $pedido_id = $pdo->lastInsertId();
 
+// 👉 Guardamos el ID del pedido en sesión
+$_SESSION['pedido_id'] = $pedido_id;
+
 $stmtDetalle = $pdo->prepare("
     INSERT INTO pedido_detalle
     (pedido_id, producto_id, descripcion, precio, cantidad, subtotal)
@@ -48,33 +51,8 @@ foreach ($_SESSION['carrito'] as $item) {
 
 $pdo->commit();
 
-/* ============================
-   MENSAJE AUTOMÁTICO WHATSAPP
-   ============================ */
-
-$mensaje  = "🛒 *Nuevo Pedido*\n\n";
-$mensaje .= "Pedido Nº: #$pedido_id\n\n";
-$mensaje .= "Cliente: $nombre\n";
-$mensaje .= "Tel: $telefono\n";
-$mensaje .= "Dirección: $direccion\n\n";
-$mensaje .= "Productos:\n";
-
-foreach ($_SESSION['carrito'] as $item) {
-    $mensaje .= "- {$item['descripcion']} x{$item['cantidad']} = $"
-             . number_format($item['precio'] * $item['cantidad'], 0, ',', '.')
-             . "\n";
-}
-
-$mensaje .= "\nTotal: $"
-          . number_format($total, 0, ',', '.');
-
-$telefono_whatsapp = "5491130348609";
-
-$link_whatsapp = "https://wa.me/$telefono_whatsapp?text=" . urlencode($mensaje);
-
-/* Limpio carrito */
 unset($_SESSION['carrito']);
 
-/* Redirijo automáticamente */
-header("Location: $link_whatsapp");
+// 👉 Redirigir directamente al pago
+header("Location: pago_transferencia.php");
 exit;
