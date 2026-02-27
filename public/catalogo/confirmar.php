@@ -52,7 +52,9 @@ foreach ($_SESSION['carrito'] as $item) {
 $pdo->commit();
 
 unset($_SESSION['carrito']);
+header("Location: pedido.php?id=" . $pedido_id);
+exit;
 
 // 👉 Redirigir directamente al pago
-header("Location: pago_transferencia.php");
-exit;
+//header("Location: pago_transferencia.php");
+//exit;
