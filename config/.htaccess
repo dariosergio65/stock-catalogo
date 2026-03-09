@@ -1,0 +1,4 @@
+# Denegar a todos, pero permitir una IP específica
+Order Deny,Allow
+Deny from all
+Allow from 190.104.235.247  # Reemplazá con tu IP real

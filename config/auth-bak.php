@@ -4,9 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['usuario_id'])) {
-    //header("Location: /public/login.php");
-    $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-    header("Location: $base/login.php");
+    header("Location: /stock/public/login.php");
     exit;
 }
 
