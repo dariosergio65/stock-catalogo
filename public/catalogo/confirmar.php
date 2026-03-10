@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "../../config/db.php";
+require_once "../../config/stock.php";
 
 if (empty($_SESSION['carrito'])) {
     header("Location: index.php");
@@ -37,8 +38,10 @@ $stmtDetalle = $pdo->prepare("
 ");
 
 foreach ($_SESSION['carrito'] as $item) {
+
     $subtotal = $item['precio'] * $item['cantidad'];
 
+    // Guardar detalle del pedido
     $stmtDetalle->execute([
         $pedido_id,
         $item['id'],
@@ -47,14 +50,33 @@ foreach ($_SESSION['carrito'] as $item) {
         $item['cantidad'],
         $subtotal
     ]);
+
+    // 🔹 RESERVAR STOCK
+    $producto_id = $item['id'];
+    $cantidad = $item['cantidad'];
+
+        $stmt = $pdo->prepare("SELECT deposito_id FROM productos WHERE id = ?");
+        $stmt->execute([$item['id']]);
+        $producto = $stmt->fetch();
+
+    $deposito_origen = $producto['deposito_id'];
+
+    //$deposito_origen = 1; // Depósito Central
+    $deposito_reserva = 8; // Reservas pedidos
+
+    transferir_stock(
+        $pdo,
+        $producto_id,
+        $deposito_origen,
+        $deposito_reserva,
+        $cantidad,
+        null
+    );
 }
 
 $pdo->commit();
 
 unset($_SESSION['carrito']);
+
 header("Location: pedido.php?id=" . $pedido_id);
 exit;
-
-// 👉 Redirigir directamente al pago
-//header("Location: pago_transferencia.php");
-//exit;

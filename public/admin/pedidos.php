@@ -206,11 +206,14 @@ $pedidos = $stmt->fetchAll();
 <div class="container py-3">
     
     <!-- Header con ícono -->
-    <h3 class="mb-4 d-flex align-items-center">
+     <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-4 d-flex align-items-center">
         <i class="bi bi-box-seam fs-1 me-2"></i>
         <span>Pedidos</span>
         <span class="badge bg-secondary ms-2"><?= count($pedidos) ?></span>
-    </h3>
+        </h3>
+        <a href="../../public/index.php" class="btn btn-secondary">⬅ Volver</a>
+    </div>
     
     <!-- ============================================ -->
     <!-- VISTA MÓVIL / TABLET (Tarjetas) -->

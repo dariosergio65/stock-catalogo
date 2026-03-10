@@ -79,6 +79,14 @@ $alertas = $stmt->fetchAll();
         </a>
       </div>
     <?php endif; ?>
+
+    <?php if (tienePermiso('catalogos')): ?>
+      <div class="col-md-3 col-sm-6">
+        <a href="../public/admin/pedidos.php" class="btn btn-primary w-100 p-3">
+          🛒 Pedidos
+        </a>
+      </div>
+    <?php endif; ?>
     
     <?php if (tienePermiso('categorias')): ?>
       <div class="col-md-3 col-sm-6">
