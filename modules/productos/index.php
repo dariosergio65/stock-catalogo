@@ -9,11 +9,14 @@ $productos = $pdo->query("
     SELECT 
         p.*,
         c.nombre AS categoria,
-        d.nombre AS deposito
+        d.nombre AS deposito,
+        COALESCE(SUM(sd.cantidad),0) AS stock
     FROM productos p
     LEFT JOIN categorias c ON p.categoria_id = c.id
     INNER JOIN depositos d ON p.deposito_id = d.id
-    WHERE p.activo=1
+    LEFT JOIN stock_deposito sd ON p.id = sd.producto_id
+    WHERE p.activo = 1
+    GROUP BY p.id
     ORDER BY p.descripcion
 ")->fetchAll();
 ?>
@@ -48,7 +51,7 @@ $productos = $pdo->query("
   <th>Categoría</th>
   <th>Depósito</th>
   <th class="text-end">Stock</th>
-  <th width="210" class="text-end">Acciones</th>
+  <th width="260" class="text-end">Acciones</th>
 </tr>
 </thead>
 
@@ -69,6 +72,10 @@ $productos = $pdo->query("
   <td><?= htmlspecialchars($p['deposito']) ?></td>
   <td class="text-end"><?= $p['stock'] ?></td>
   <td class="text-end">
+      <a href="stock.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-warning">
+      📦 Stock
+      </a>
+      <!--<a href="stock.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-info">📊 Stock</a> -->
       <a href="editar.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-primary">✏ Editar</a>
       <a href="eliminar.php?id=<?= $p['id'] ?>"
          onclick="return confirm('¿Eliminar producto?')"

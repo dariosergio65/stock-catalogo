@@ -6,27 +6,65 @@ require_once "../../config/auditoria.php";
 
 verificarPermiso('productos');
 
-$id = $_GET['id'];
+$id = $_GET['id'] ?? 0;
 
+
+/* =========================
+   VERIFICAR STOCK
+========================= */
+
+$stmt = $pdo->prepare("
+SELECT SUM(cantidad)
+FROM stock_deposito
+WHERE producto_id=?
+");
+
+$stmt->execute([$id]);
+
+$stock = $stmt->fetchColumn();
+
+
+if($stock > 0){
+
+    echo "
+    <div class='container mt-5'>
+        <div class='alert alert-danger'>
+            <h4>❌ No se puede eliminar</h4>
+            <p>El producto todavía tiene stock disponible.</p>
+            <a href='index.php' class='btn btn-secondary'>Volver</a>
+        </div>
+    </div>
+    ";
+
+    exit;
+}
+
+
+/* =========================
+   DESACTIVAR PRODUCTO
+========================= */
+
+$pdo->prepare("
+UPDATE productos
+SET activo=0
+WHERE id=?
+")->execute([$id]);
+
+
+/* =========================
+   AUDITORIA
+========================= */
 
 registrarAuditoria(
-    'eliminar',
-    'productos',
-    "Eliminó producto ID: $id"
+'productos',
+'eliminar',
+"Desactivó producto ID: $id"
 );
 
 
-$stmt = $pdo->prepare("UPDATE productos SET activo=0 WHERE id=?");
-$stmt->execute([$id]);
-
-//$pdo->prepare("DELETE FROM productos WHERE id=?")
-  //  ->execute([$_GET['id']]);
+/* =========================
+   REDIRECT
+========================= */
 
 header("Location: index.php");
-?>
-<head>
-<meta charset="utf-8">
-<title>Productos</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="../../assets/css/styles.css">
-</head>
+exit;

@@ -3,13 +3,23 @@ require_once "../../config/db.php";
 
 $productos = $pdo->query("
 SELECT 
-    p.*,
-    c.nombre AS categoria
+    p.id,
+    p.descripcion,
+    p.precio_venta,
+    p.imagen,
+    c.nombre AS categoria,
+    SUM(sd.cantidad) AS stock
 FROM productos p
 LEFT JOIN categorias c ON p.categoria_id = c.id
-WHERE p.stock > 0
-ORDER BY p.descripcion
+LEFT JOIN stock_deposito sd 
+    ON sd.producto_id = p.id
+    AND sd.deposito_id != 8
+WHERE p.activo = 1
+GROUP BY p.id
+HAVING stock > 0
+ORDER BY p.imagen IS NULL, p.descripcion
 ")->fetchAll();
+
 
 $categorias = $pdo->query("SELECT * FROM categorias ORDER BY nombre")->fetchAll();
 ?>
@@ -80,6 +90,17 @@ body {
     padding-bottom: 65px;
 }
 
+.card-prod img {
+    height: 150px;
+    object-fit: cover;
+    background:#eee;
+}
+
+.card-body h6{
+    font-size:14px;
+    min-height:32px;
+}
+
 </style>
 
 </head>
@@ -127,7 +148,7 @@ body {
 
 <div class="card card-prod h-100">
 
-<img src="../../uploads/productos/<?= $p['imagen'] ?: 'no-image.png' ?>">
+<img src="../../uploads/productos/<?= $p['imagen'] ?: 'no-image.png' ?>" loading="lazy">
 
 <div class="card-body p-2">
 
@@ -141,10 +162,10 @@ body {
 $<?= number_format($p['precio_venta'],2,',','.') ?>
 </div>
 
-<a href="carrito/agregar.php?id=<?= $p['id'] ?>" class="btn btn-success w-100">
+<a href="carrito/agregar.php?id=<?= $p['id'] ?>" 
+   class="btn btn-success w-100 btn-sm mt-2">
    Agregar 🛒
 </a>
-
 </div>
 
 </div>
