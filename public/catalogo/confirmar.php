@@ -18,56 +18,59 @@ foreach ($_SESSION['carrito'] as $item) {
     $total += $item['precio'] * $item['cantidad'];
 }
 
-$pdo->beginTransaction();
+try {
 
-$stmt = $pdo->prepare("
-    INSERT INTO pedidos (nombre, telefono, email, direccion, total)
-    VALUES (?, ?, ?, ?, ?)
-");
-$stmt->execute([$nombre, $telefono, $email, $direccion, $total]);
+    $pdo->beginTransaction();
 
-$pedido_id = $pdo->lastInsertId();
+    $stmt = $pdo->prepare("
+        INSERT INTO pedidos (nombre, telefono, email, direccion, total)
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    $stmt->execute([$nombre, $telefono, $email, $direccion, $total]);
 
-// 👉 Guardamos el ID del pedido en sesión
-$_SESSION['pedido_id'] = $pedido_id;
+    $pedido_id = $pdo->lastInsertId();
 
-$stmtDetalle = $pdo->prepare("
-    INSERT INTO pedido_detalle
-    (pedido_id, producto_id, descripcion, precio, cantidad, subtotal)
-    VALUES (?, ?, ?, ?, ?, ?)
-");
+    $_SESSION['pedido_id'] = $pedido_id;
 
-foreach ($_SESSION['carrito'] as $item) {
+    $stmtDetalle = $pdo->prepare("
+        INSERT INTO pedido_detalle
+        (pedido_id, producto_id, descripcion, precio, cantidad, subtotal)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ");
 
-    $subtotal = $item['precio'] * $item['cantidad'];
+    foreach ($_SESSION['carrito'] as $item) {
 
-    // Guardar detalle del pedido
-    $stmtDetalle->execute([
-        $pedido_id,
-        $item['id'],
-        $item['descripcion'],
-        $item['precio'],
-        $item['cantidad'],
-        $subtotal
-    ]);
+        $subtotal = $item['precio'] * $item['cantidad'];
 
-    // 🔹 RESERVAR STOCK
-    $producto_id = $item['id'];
-    $cantidad = $item['cantidad'];
+        $stmtDetalle->execute([
+            $pedido_id,
+            $item['id'],
+            $item['descripcion'],
+            $item['precio'],
+            $item['cantidad'],
+            $subtotal
+        ]);
 
-    $stmt = $pdo->prepare("SELECT deposito_id FROM productos WHERE id = ?");
-    $stmt->execute([$item['id']]);
-    $producto = $stmt->fetch();
+        // reservar stock
+        $producto_id = $item['id'];
+        $cantidad = $item['cantidad'];
 
-    //$deposito_origen = $producto['deposito_id'];
+        $deposito_reserva = 8;
 
-    $deposito_reserva = 8; // Reservas pedidos
+        transferir_stock($pdo, $producto_id, $deposito_reserva, $cantidad);
+    }
 
-    transferir_stock($pdo, $producto_id, $deposito_reserva, $cantidad);
+    $pdo->commit();
+
+} catch (Exception $e) {
+
+    $pdo->rollBack();
+
+    $_SESSION['error_stock'] = "❌ No hay stock suficiente para completar el pedido.";
+
+    header("Location: carrito.php");
+    exit;
 }
-
-$pdo->commit();
-
 unset($_SESSION['carrito']);
 
 header("Location: pedido.php?id=" . $pedido_id);
