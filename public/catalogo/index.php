@@ -162,10 +162,37 @@ body {
 $<?= number_format($p['precio_venta'],2,',','.') ?>
 </div>
 
-<a href="carrito/agregar.php?id=<?= $p['id'] ?>" 
+<!-- <a href="carrito/agregar.php?id=<?= $p['id'] ?>" 
    class="btn btn-success w-100 btn-sm mt-2">
    Agregar 🛒
-</a>
+</a> -->
+
+    <div class="input-group mt-2">
+
+    <button class="btn btn-outline-secondary btn-menos" data-id="<?= $p['id'] ?>">
+    −
+    </button>
+
+    <input 
+    type="number"
+    class="form-control text-center cantidad"
+    value="1"
+    min="1"
+    max="<?= $p['stock'] ?>"
+    data-id="<?= $p['id'] ?>"
+    data-stock="<?= $p['stock'] ?>"
+    >
+
+    <button class="btn btn-outline-secondary btn-mas" data-id="<?= $p['id'] ?>">
+    +
+    </button>
+
+    <button class="btn btn-success agregar-carrito" data-id="<?= $p['id'] ?>">
+    🛒
+    </button>
+
+    </div>
+
 </div>
 
 </div>
@@ -226,6 +253,71 @@ filtroTxt.addEventListener('keyup', filtrar);
         <small>Buscar</small>
     </a>
 </nav>
+
+<script>
+
+document.querySelectorAll(".btn-mas").forEach(btn => {
+
+btn.addEventListener("click", function(){
+
+let id = this.dataset.id;
+
+let input = document.querySelector('.cantidad[data-id="'+id+'"]');
+
+let stock = parseInt(input.dataset.stock);
+
+let valor = parseInt(input.value);
+
+if(valor < stock){
+    input.value = valor + 1;
+}
+
+});
+
+});
+
+
+document.querySelectorAll(".btn-menos").forEach(btn => {
+
+btn.addEventListener("click", function(){
+
+let id = this.dataset.id;
+
+let input = document.querySelector('.cantidad[data-id="'+id+'"]');
+
+let val = parseInt(input.value);
+
+if(val > 1){
+input.value = val - 1;
+}
+
+});
+
+});
+
+
+document.querySelectorAll(".agregar-carrito").forEach(btn => {
+
+btn.addEventListener("click", function(){
+
+let id = this.dataset.id;
+
+let input = document.querySelector('.cantidad[data-id="'+id+'"]');
+
+let cantidad = parseInt(input.value);
+let stock = parseInt(input.dataset.stock);
+
+if(cantidad > stock){
+    cantidad = stock;
+}
+
+window.location = "carrito/agregar.php?id="+id+"&cantidad="+cantidad;
+
+});
+
+});
+
+</script>
 
 </body>
 </html>

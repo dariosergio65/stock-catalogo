@@ -1,46 +1,90 @@
 <?php
 
-function transferir_stock($pdo, $producto_id, $origen, $destino, $cantidad, $lote = null)
+function transferir_stock($pdo, $producto_id, $destino, $cantidad, $lote = null)
 {
-        $lote = $lote ?? '';
 
-    // buscar stock en origen
-    $sql = "SELECT id, cantidad 
-            FROM stock_deposito
-            WHERE producto_id = ?
-            AND deposito_id = ?
-            AND lote = ?
-            LIMIT 1";
+    $transaccionPropia = false;
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$producto_id, $origen, $lote]);
-    $fila = $stmt->fetch();
-
-    if (!$fila || $fila['cantidad'] < $cantidad) {
-        throw new Exception("Stock insuficiente para producto $producto_id");
+    if (!$pdo->inTransaction()) {
+        $pdo->beginTransaction();
+        $transaccionPropia = true;
     }
 
-    // restar del origen
-    $sql = "UPDATE stock_deposito
-            SET cantidad = cantidad - ?
-            WHERE id = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$cantidad, $fila['id']]);
+    try {
 
-    // eliminar registro si queda en 0
-        $sql = "DELETE FROM stock_deposito
-        WHERE id = ?
-        AND cantidad <= 0";
+        $sql = "SELECT id, deposito_id, cantidad
+                FROM stock_deposito
+                WHERE producto_id = ?
+                AND cantidad > 0
+                ORDER BY cantidad DESC
+                FOR UPDATE";
+
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$fila['id']]);
+        $stmt->execute([$producto_id]);
 
-    // sumar al destino
-    $sql = "INSERT INTO stock_deposito
-        (producto_id, deposito_id, lote, cantidad)
-        VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-        cantidad = cantidad + VALUES(cantidad)";
+        $stocks = $stmt->fetchAll();
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$producto_id, $destino, '', $cantidad]);
+        $restante = $cantidad;
+
+        foreach ($stocks as $s) {
+
+            if ($restante <= 0) break;
+
+            $usar = min($s['cantidad'], $restante);
+
+            $pdo->prepare("
+                UPDATE stock_deposito
+                SET cantidad = cantidad - ?
+                WHERE id = ?
+            ")->execute([$usar, $s['id']]);
+
+
+            $pdo->prepare("
+                DELETE FROM stock_deposito
+                WHERE id = ?
+                AND cantidad <= 0
+            ")->execute([$s['id']]);
+
+
+            $pdo->prepare("
+                INSERT INTO stock_deposito
+                (producto_id, deposito_id, lote, cantidad)
+                VALUES (?, ?, '', ?)
+                ON DUPLICATE KEY UPDATE
+                cantidad = cantidad + VALUES(cantidad)
+            ")->execute([$producto_id, $destino, $usar]);
+
+            $restante -= $usar;
+        }
+
+        if ($restante > 0) {
+            throw new Exception("Stock insuficiente para producto $producto_id");
+        }
+
+        if ($transaccionPropia) {
+            $pdo->commit();
+        }
+
+    } catch (Exception $e) {
+
+        if ($transaccionPropia && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $e;
+    }
+}
+
+function obtener_stock_total($pdo, $producto_id)
+{
+    $sql = "SELECT SUM(cantidad) as stock
+            FROM stock_deposito
+            WHERE producto_id = ?";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$producto_id]);
+
+    $fila = $stmt->fetch();
+
+    return (int)($fila['stock'] ?? 0);
 }

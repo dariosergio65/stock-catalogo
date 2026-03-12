@@ -55,23 +55,15 @@ foreach ($_SESSION['carrito'] as $item) {
     $producto_id = $item['id'];
     $cantidad = $item['cantidad'];
 
-        $stmt = $pdo->prepare("SELECT deposito_id FROM productos WHERE id = ?");
-        $stmt->execute([$item['id']]);
-        $producto = $stmt->fetch();
+    $stmt = $pdo->prepare("SELECT deposito_id FROM productos WHERE id = ?");
+    $stmt->execute([$item['id']]);
+    $producto = $stmt->fetch();
 
-    $deposito_origen = $producto['deposito_id'];
+    //$deposito_origen = $producto['deposito_id'];
 
-    //$deposito_origen = 1; // Depósito Central
     $deposito_reserva = 8; // Reservas pedidos
 
-    transferir_stock(
-        $pdo,
-        $producto_id,
-        $deposito_origen,
-        $deposito_reserva,
-        $cantidad,
-        null
-    );
+    transferir_stock($pdo, $producto_id, $deposito_reserva, $cantidad);
 }
 
 $pdo->commit();
