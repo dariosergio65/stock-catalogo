@@ -88,3 +88,31 @@ function obtener_stock_total($pdo, $producto_id)
 
     return (int)($fila['stock'] ?? 0);
 }
+
+function devolver_stock_pedido($pdo, $pedido_id)
+{
+    $stmt = $pdo->prepare("
+        SELECT producto_id, cantidad, deposito_origen
+        FROM pedido_detalle
+        WHERE pedido_id = ?
+    ");
+
+    $stmt->execute([$pedido_id]);
+    $items = $stmt->fetchAll();
+
+    foreach ($items as $item) {
+
+        if (!$item['deposito_origen']) {
+            throw new Exception(
+                "El pedido tiene productos sin depósito de origen."
+            );
+        }
+
+        transferir_stock(
+            $pdo,
+            $item['producto_id'],
+            $item['deposito_origen'],
+            $item['cantidad']
+        );
+    }
+}
