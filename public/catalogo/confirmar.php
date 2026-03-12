@@ -34,29 +34,47 @@ try {
 
     $stmtDetalle = $pdo->prepare("
         INSERT INTO pedido_detalle
-        (pedido_id, producto_id, descripcion, precio, cantidad, subtotal)
-        VALUES (?, ?, ?, ?, ?, ?)
+        (pedido_id, producto_id, descripcion, precio, cantidad, subtotal, deposito_origen)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
 
     foreach ($_SESSION['carrito'] as $item) {
 
-        $subtotal = $item['precio'] * $item['cantidad'];
+        $producto_id = $item['id'];
+        $cantidad    = $item['cantidad'];
+        $subtotal    = $item['precio'] * $cantidad;
 
+        // 🔎 Buscar depósito con stock suficiente
+        $stmt = $pdo->prepare("
+            SELECT deposito_id
+            FROM stock_deposito
+            WHERE producto_id = ?
+            AND cantidad >= ?
+            ORDER BY cantidad DESC
+            LIMIT 1
+        ");
+        $stmt->execute([$producto_id, $cantidad]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            throw new Exception("Stock insuficiente para producto " . $producto_id);
+        }
+
+        $deposito_origen  = $row['deposito_id'];
+        $deposito_reserva = 8; // Depósito Reservas Pedidos
+
+        // Guardar detalle del pedido
         $stmtDetalle->execute([
             $pedido_id,
-            $item['id'],
+            $producto_id,
             $item['descripcion'],
             $item['precio'],
-            $item['cantidad'],
-            $subtotal
+            $cantidad,
+            $subtotal,
+            $deposito_origen
         ]);
 
-        // reservar stock
-        $producto_id = $item['id'];
-        $cantidad = $item['cantidad'];
-
-        $deposito_reserva = 8;
-
+        // 🔹 Transferir stock a reservas
         transferir_stock($pdo, $producto_id, $deposito_reserva, $cantidad);
     }
 
@@ -71,6 +89,7 @@ try {
     header("Location: carrito.php");
     exit;
 }
+
 unset($_SESSION['carrito']);
 
 header("Location: pedido.php?id=" . $pedido_id);

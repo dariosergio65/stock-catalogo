@@ -28,41 +28,15 @@ try {
 
     $pdo->beginTransaction();
 
-    // Obtener productos del pedido
+    // 🔹 DEVOLVER STOCK A DEPÓSITOS ORIGINALES
+    devolver_stock_pedido($pdo, $pedido_id);
+
+    // 🔹 ACTUALIZAR ESTADO DEL PEDIDO
     $stmt = $pdo->prepare("
-        SELECT producto_id, cantidad
-        FROM pedido_detalle
-        WHERE pedido_id = ?
+        UPDATE pedidos 
+        SET estado = 'cancelado'
+        WHERE id = ?
     ");
-    $stmt->execute([$pedido_id]);
-    $items = $stmt->fetchAll();
-
-    foreach ($items as $item) {
-
-        // Buscar depósito original del producto
-        $stmt = $pdo->prepare("
-            SELECT deposito_id
-            FROM productos
-            WHERE id = ?
-        ");
-        $stmt->execute([$item['producto_id']]);
-        $producto = $stmt->fetch();
-
-        $deposito_original = $producto['deposito_id'];
-
-        // Devolver stock desde reservas
-        transferir_stock(
-            $pdo,
-            $item['producto_id'],
-            8, // depósito reservas
-            $deposito_original,
-            $item['cantidad']
-        );
-
-    }
-
-    // Actualizar estado del pedido
-    $stmt = $pdo->prepare("UPDATE pedidos SET estado='cancelado' WHERE id=?");
     $stmt->execute([$pedido_id]);
 
     $pdo->commit();
