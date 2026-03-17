@@ -22,6 +22,7 @@ try {
 
     $pdo->beginTransaction();
 
+    // Crear pedido
     $stmt = $pdo->prepare("
         INSERT INTO pedidos (nombre, telefono, email, direccion, total)
         VALUES (?, ?, ?, ?, ?)
@@ -44,38 +45,55 @@ try {
         $cantidad    = $item['cantidad'];
         $subtotal    = $item['precio'] * $cantidad;
 
-        // 🔎 Buscar depósito con stock suficiente
+        // 🔎 Buscar todos los depósitos con stock
         $stmt = $pdo->prepare("
-            SELECT deposito_id
+            SELECT deposito_id, cantidad
             FROM stock_deposito
             WHERE producto_id = ?
-            AND cantidad >= ?
+            AND cantidad > 0
             ORDER BY cantidad DESC
-            LIMIT 1
+            FOR UPDATE
         ");
-        $stmt->execute([$producto_id, $cantidad]);
-        $row = $stmt->fetch();
+        $stmt->execute([$producto_id]);
 
-        if (!$row) {
-            throw new Exception("Stock insuficiente para producto " . $producto_id);
+        $stocks = $stmt->fetchAll();
+
+        $restante = $cantidad;
+
+        foreach ($stocks as $s) {
+
+            if ($restante <= 0) break;
+
+            $usar = min($s['cantidad'], $restante);
+
+            $deposito_origen = $s['deposito_id'];
+
+            // Guardar detalle del pedido
+            $stmtDetalle->execute([
+                $pedido_id,
+                $producto_id,
+                $item['descripcion'],
+                $item['precio'],
+                $usar,
+                $item['precio'] * $usar,
+                $deposito_origen
+            ]);
+
+            // 🔹 Transferir stock a reservas
+            transferir_stock(
+                $pdo,
+                $producto_id,
+                $deposito_origen,
+                DEPOSITO_RESERVAS,
+                $usar
+            );
+
+            $restante -= $usar;
         }
 
-        $deposito_origen  = $row['deposito_id'];
-        $deposito_reserva = 8; // Depósito Reservas Pedidos
-
-        // Guardar detalle del pedido
-        $stmtDetalle->execute([
-            $pedido_id,
-            $producto_id,
-            $item['descripcion'],
-            $item['precio'],
-            $cantidad,
-            $subtotal,
-            $deposito_origen
-        ]);
-
-        // 🔹 Transferir stock a reservas
-        transferir_stock($pdo, $producto_id, $deposito_reserva, $cantidad);
+        if ($restante > 0) {
+            throw new Exception("Stock insuficiente para producto " . $producto_id);
+        }
     }
 
     $pdo->commit();

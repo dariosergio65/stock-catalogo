@@ -15,9 +15,46 @@ try {
 
     $pdo->beginTransaction();
 
-    // obtener productos del pedido
+    // Obtener pedido
+    $stmt = $pdo->prepare("SELECT estado, fecha FROM pedidos WHERE id=?");
+    $stmt->execute([$id]);
+    $pedido = $stmt->fetch();
+
+    if(!$pedido){
+        throw new Exception("Pedido inexistente");
+    }
+
+    $estado_actual = $pedido['estado'];
+
+    // 🔒 Control de transición
+    $transiciones = [
+        'pendiente' => ['pagado','cancelado'],
+        'pagado' => ['enviado','cancelado'],
+        'enviado' => ['entregado','cancelado'],
+        'entregado' => ['cancelado'],
+        'cancelado' => []
+    ];
+
+    if (!in_array($estado, $transiciones[$estado_actual])) {
+        throw new Exception("Cambio de estado no permitido");
+    }
+
+    // 🔒 Regla de 10 días para cancelación
+    if ($estado == 'cancelado' && $estado_actual == 'entregado') {
+
+        $fechaPedido = new DateTime($pedido['fecha']);
+        $hoy = new DateTime();
+
+        $diff = $fechaPedido->diff($hoy)->days;
+
+        if ($diff > 10) {
+            throw new Exception("No se puede cancelar: pasaron más de 10 días");
+        }
+    }
+
+    // Obtener items
     $stmt = $pdo->prepare("
-        SELECT producto_id, cantidad
+        SELECT producto_id, cantidad, deposito_origen
         FROM pedido_detalle
         WHERE pedido_id = ?
     ");
@@ -28,72 +65,42 @@ try {
 
         $producto_id = $item['producto_id'];
         $cantidad = $item['cantidad'];
+        $deposito_origen = $item['deposito_origen'];
 
-        // buscar depósito original del producto
-        $stmt = $pdo->prepare("SELECT deposito_id FROM productos WHERE id=?");
-        $stmt->execute([$producto_id]);
-        $producto = $stmt->fetch();
-
-        $deposito_origen = $producto['deposito_id'];
-
-        // PAGADO → mover de reservas a mostrador
-        if ($estado == 'pagado') {
-
-            transferir_stock($pdo, $producto_id, 8, 3, $cantidad);
-
-        }
-
-        // ENVIADO → salida definitiva desde mostrador
-        if ($estado == 'enviado') {
-
-            // restar stock del mostrador
-            $sql = "UPDATE stock_deposito
-                    SET cantidad = cantidad - ?
-                    WHERE producto_id = ?
-                    AND deposito_id = 3
-                    LIMIT 1";
-
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$cantidad, $producto_id]);
-
-            // eliminar fila si queda en 0
-            $sql = "DELETE FROM stock_deposito
-                    WHERE producto_id = ?
-                    AND deposito_id = 3
-                    AND cantidad <= 0";
-
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$producto_id]);
-
-        }
-
-        // CANCELADO → devolver al depósito original
+        // ✅ CANCELADO → devolver a origen
         if ($estado == 'cancelado') {
 
-            transferir_stock($pdo, $producto_id, 8, $deposito_origen, $cantidad);
+            transferir_stock(
+                $pdo,
+                $producto_id,
+                DEPOSITO_RESERVAS,
+                $deposito_origen,
+                $cantidad
+            );
+        }
 
+        // ✅ ENTREGADO → salida definitiva (se elimina de reservas)
+        if ($estado == 'entregado') {
+
+            $stmt = $pdo->prepare("
+                UPDATE stock_deposito
+                SET cantidad = cantidad - ?
+                WHERE producto_id = ?
+                AND deposito_id = ?
+            ");
+            $stmt->execute([$cantidad, $producto_id, DEPOSITO_RESERVAS]);
+
+            $stmt = $pdo->prepare("
+                DELETE FROM stock_deposito
+                WHERE producto_id = ?
+                AND deposito_id = ?
+                AND cantidad <= 0
+            ");
+            $stmt->execute([$producto_id, DEPOSITO_RESERVAS]);
         }
     }
 
-    $stmt = $pdo->prepare("SELECT estado FROM pedidos WHERE id=?");
-    $stmt->execute([$id]);
-    $pedido = $stmt->fetch();
-
-    $estado_actual = $pedido['estado'];
-
-    $transiciones = [
-    'pendiente' => ['pagado','cancelado'],
-    'pagado' => ['enviado'],
-    'enviado' => ['entregado'],
-    'entregado' => [],
-    'cancelado' => []
-    ];
-
-    if (!in_array($estado, $transiciones[$estado_actual])) {
-        die("Cambio de estado no permitido");
-    }
-
-    // actualizar estado del pedido
+    // actualizar estado
     $stmt = $pdo->prepare("UPDATE pedidos SET estado=? WHERE id=?");
     $stmt->execute([$estado,$id]);
 
