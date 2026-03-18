@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once "../../config/db.php";
 require_once "../../config/stock.php";
 
@@ -77,6 +78,26 @@ try {
                 $deposito_origen,
                 $cantidad
             );
+        }
+
+        // 📊 Kardex: CANCELACIÓN
+        try {
+            $pdo->prepare("
+                INSERT INTO movimientos
+                (producto_id, tipo, cantidad, fecha, deposito_origen, deposito_destino, tipo_movimiento, usuario_id)
+                VALUES (?, 'entrada', ?, NOW(), ?, ?, 'cancelacion', ?)
+            ")->execute([
+                $producto_id,
+                $cantidad,
+                DEPOSITO_RESERVAS,
+                $deposito_origen,
+                $_SESSION['usuario_id'] ?? 1
+            ]);
+        } catch (Exception $e) {
+            // no romper flujo
+            echo "ERROR CANCELACION KARDEX:<br>";
+            echo $e->getMessage();
+            exit;
         }
 
         // ✅ ENTREGADO → salida definitiva (se elimina de reservas)

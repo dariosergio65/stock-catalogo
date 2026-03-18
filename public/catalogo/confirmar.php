@@ -88,6 +88,26 @@ try {
                 $usar
             );
 
+            // 📊 Kardex: RESERVA (ver error)
+            try {
+                $pdo->prepare("
+                    INSERT INTO movimientos
+                    (producto_id, tipo, cantidad, fecha, deposito_origen, deposito_destino, tipo_movimiento, usuario_id)
+                    VALUES (?, 'salida', ?, NOW(), ?, ?, 'reserva', ?)
+                ")->execute([
+                    $producto_id,
+                    $usar,
+                    $deposito_origen,
+                    DEPOSITO_RESERVAS,
+                    $_SESSION['usuario_id'] ?? 1
+                ]);
+            } catch (Exception $e) {
+
+                echo "ERROR KARDEX:<br>";
+                echo $e->getMessage();
+                exit;
+            }
+
             $restante -= $usar;
         }
 
@@ -103,8 +123,8 @@ try {
     $pdo->rollBack();
 
     $_SESSION['error_stock'] = "❌ No hay stock suficiente para completar el pedido.";
-
-    header("Location: carrito.php");
+    //ver
+    header("Location: carrito/carrito.php");
     exit;
 }
 

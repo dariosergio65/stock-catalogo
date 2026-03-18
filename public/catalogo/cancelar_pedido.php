@@ -1,4 +1,5 @@
 <?php
+// En realidad cancela pedidos en: public/admin/cambiar_estado
 require_once "../../config/db.php";
 require_once "../../config/stock.php";
 
@@ -44,6 +45,25 @@ try {
             $item['cantidad'],
             null
         );
+
+        // 📊 Kardex: CANCELACIÓN
+        try {
+            $pdo->prepare("
+                INSERT INTO movimientos
+                (producto_id, tipo, cantidad, fecha, deposito_origen, deposito_destino, tipo_movimiento, usuario_id)
+                VALUES (?, 'entrada', ?, NOW(), ?, ?, 'cancelacion', ?)
+            ")->execute([
+                $item['producto_id'],
+                $item['cantidad'],
+                DEPOSITO_RESERVAS,
+                $item['deposito_origen'],
+                $_SESSION['usuario_id'] ?? 1
+            ]);
+        } catch (Exception $e) {
+            echo "ERROR CANCELACION KARDEX:<br>";
+            echo $e->getMessage();
+            exit;
+        }
 
     }
 
