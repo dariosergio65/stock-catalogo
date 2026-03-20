@@ -96,15 +96,22 @@ if ($m['tipo'] == 'entrada') {
 }
 
 // 🎨 color según tipo
-$badge = match($m['tipo_movimiento'] ?? '') {
-    'venta' => 'danger',
-    'cancelacion' => 'success',
-    'envio' => 'primary',
-    default => 'secondary'
+switch ($m['tipo_movimiento'] ?? '') {
+    case 'venta':
+        $badge = 'danger';
+        break;
+    case 'cancelacion':
+        $badge = 'success';
+        break;
+    case 'envio':
+        $badge = 'primary';
+        break;
+    default:
+        $badge = 'secondary';
 };
 ?>
 
-<tr>
+<tr class="table-<?= $badge ?>">
   <td><?= $m['fecha'] ?></td>
   <td><?= strtoupper($m['tipo']) ?></td>
   <td class="text-success"><?= $ent ?></td>
