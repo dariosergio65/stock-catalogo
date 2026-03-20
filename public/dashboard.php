@@ -12,6 +12,18 @@ $totalProveedores = $pdo->query("SELECT COUNT(*) FROM proveedores")->fetchColumn
 
 $stockTotal = $pdo->query("SELECT SUM(stock) FROM productos")->fetchColumn();
 
+// 💰 Valorización de stock (incluye reservas)
+$valorizacion = $pdo->query("
+    SELECT 
+        SUM(sd.cantidad * p.precio_compra) as total_costo,
+        SUM(sd.cantidad * p.precio_venta) as total_venta
+    FROM stock_deposito sd
+    JOIN productos p ON p.id = sd.producto_id
+")->fetch();
+
+$stockCosto = $valorizacion['total_costo'] ?? 0;
+$stockVenta = $valorizacion['total_venta'] ?? 0;
+
 $stockBajo = $pdo->query("
   SELECT COUNT(*) 
   FROM productos 
@@ -495,6 +507,27 @@ foreach ($top as $t) {
             <div class="metrica-valor"><?= $movHoy ?></div>
             <div class="metrica-label">Mov. hoy</div>
         </div>
+
+        <div class="metrica-card">
+            <div class="metrica-icono bg-soft-success">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="metrica-valor">
+                $<?= number_format($stockCosto, 2, ',', '.') ?>
+            </div>
+            <div class="metrica-label">Stock a costo</div>
+        </div>
+
+        <div class="metrica-card">
+            <div class="metrica-icono bg-soft-primary">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="metrica-valor">
+                $<?= number_format($stockVenta, 2, ',', '.') ?>
+            </div>
+            <div class="metrica-label">Stock a venta</div>
+        </div>
+
     </div>
 
     <!-- GRÁFICOS -->
