@@ -1,7 +1,9 @@
 <?php
 session_start();
+
 require_once "../../config/db.php";
 require_once "../../config/stock.php";
+require_once "../../config/pedidos/PedidoContext.php";
 
 $id = (int)($_GET['id'] ?? 0);
 $estado = $_GET['estado'] ?? '';
@@ -16,7 +18,7 @@ try {
 
     $pdo->beginTransaction();
 
-    // Obtener pedido
+    // 🔎 Obtener pedido actual
     $stmt = $pdo->prepare("SELECT estado, fecha FROM pedidos WHERE id=?");
     $stmt->execute([$id]);
     $pedido = $stmt->fetch();
@@ -53,75 +55,48 @@ try {
         }
     }
 
-    // Obtener items
-    $stmt = $pdo->prepare("
-        SELECT producto_id, cantidad, deposito_origen
-        FROM pedido_detalle
-        WHERE pedido_id = ?
-    ");
-    $stmt->execute([$id]);
-    $items = $stmt->fetchAll();
+    if ($estado == 'enviado') {
 
-    foreach ($items as $item) {
+        require_once "../../config/pedidos/PedidoContext.php";
 
-        $producto_id = $item['producto_id'];
-        $cantidad = $item['cantidad'];
-        $deposito_origen = $item['deposito_origen'];
+        $context = new PedidoContext($pdo);
+        $strategy = $context->cambiarEstado($id, 'enviado');
 
-        // ✅ CANCELADO → devolver a origen
-        if ($estado == 'cancelado') {
+        $strategy->ejecutar($pdo, $id);
 
-            transferir_stock(
-                $pdo,
-                $producto_id,
-                DEPOSITO_RESERVAS,
-                $deposito_origen,
-                $cantidad
-            );
-        }
+        $stmt = $pdo->prepare("UPDATE pedidos SET estado=? WHERE id=?");
+        $stmt->execute([$estado,$id]);
 
-        // 📊 Kardex: CANCELACIÓN
-        try {
-            $pdo->prepare("
-                INSERT INTO movimientos
-                (producto_id, tipo, cantidad, fecha, deposito_origen, deposito_destino, tipo_movimiento, usuario_id)
-                VALUES (?, 'entrada', ?, NOW(), ?, ?, 'cancelacion', ?)
-            ")->execute([
-                $producto_id,
-                $cantidad,
-                DEPOSITO_RESERVAS,
-                $deposito_origen,
-                $_SESSION['usuario_id'] ?? 1
-            ]);
-        } catch (Exception $e) {
-            // no romper flujo
-            echo "ERROR CANCELACION KARDEX:<br>";
-            echo $e->getMessage();
-            exit;
-        }
+        $pdo->commit();
 
-        // ✅ ENTREGADO → salida definitiva (se elimina de reservas)
-        if ($estado == 'entregado') {
-
-            $stmt = $pdo->prepare("
-                UPDATE stock_deposito
-                SET cantidad = cantidad - ?
-                WHERE producto_id = ?
-                AND deposito_id = ?
-            ");
-            $stmt->execute([$cantidad, $producto_id, DEPOSITO_RESERVAS]);
-
-            $stmt = $pdo->prepare("
-                DELETE FROM stock_deposito
-                WHERE producto_id = ?
-                AND deposito_id = ?
-                AND cantidad <= 0
-            ");
-            $stmt->execute([$producto_id, DEPOSITO_RESERVAS]);
-        }
+        header("Location: pedido_ver.php?id=".$id);
+        exit;
     }
 
-    // actualizar estado
+    if ($estado == 'entregado') {
+
+        $context = new PedidoContext($pdo);
+        $strategy = $context->cambiarEstado($id, 'entregado');
+
+        $strategy->ejecutar($pdo, $id);
+
+        $stmt = $pdo->prepare("UPDATE pedidos SET estado=? WHERE id=?");
+        $stmt->execute([$estado,$id]);
+
+        $pdo->commit();
+
+        header("Location: pedido_ver.php?id=".$id);
+        exit;
+    }
+
+    // 🧠 STRATEGY (EL CORAZÓN DEL SISTEMA)
+    $context = new PedidoContext($pdo);
+    $strategy = $context->cambiarEstado($id, $estado);
+
+    // ejecutar lógica específica del estado
+    $strategy->ejecutar($pdo, $id);
+
+    // 📝 actualizar estado del pedido
     $stmt = $pdo->prepare("UPDATE pedidos SET estado=? WHERE id=?");
     $stmt->execute([$estado,$id]);
 
@@ -131,7 +106,6 @@ try {
 
     $pdo->rollBack();
     die("Error: " . $e->getMessage());
-
 }
 
 header("Location: pedido_ver.php?id=".$id);
